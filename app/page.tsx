@@ -242,21 +242,21 @@ export default function CompareDecksPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f14] text-[#f0eef7] p-6">
+    <div className="min-h-screen bg-[#0f0f14] text-[#f0eef7] p-4 sm:p-6">
       {/* Subida de mazos */}
       <div className="bg-[#1a1a22] border border-[#2c2c38] rounded-lg p-4 mb-5">
         <h2 className="text-xs font-bold uppercase tracking-wide text-[#8c8a9c] mb-3">
           Mazos guardados
         </h2>
 
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
           <input
             ref={fileInputRef}
             type="file"
             accept=".txt"
             onChange={handleFileChange}
             disabled={uploading}
-            className="text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-[#8a6fe8] file:text-white file:px-4 file:py-2 file:text-sm file:font-semibold file:cursor-pointer hover:file:brightness-110 disabled:opacity-50"
+            className="text-sm max-w-full file:mr-3 file:rounded-lg file:border-0 file:bg-[#8a6fe8] file:text-white file:px-4 file:py-2 file:text-sm file:font-semibold file:cursor-pointer hover:file:brightness-110 disabled:opacity-50"
           />
           {uploading && (
             <span className="text-sm text-[#8c8a9c]">Subiendo...</span>
@@ -298,7 +298,7 @@ export default function CompareDecksPage() {
         <h2 className="text-xs font-bold uppercase tracking-wide text-[#8c8a9c] mb-3">
           Comparar
         </h2>
-        <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-3 sm:items-end">
           <div>
             <label
               htmlFor="currentDeckSelect"
@@ -328,7 +328,7 @@ export default function CompareDecksPage() {
           <button
             onClick={handleSwap}
             title="Intercambiar"
-            className="bg-transparent border border-[#2c2c38] text-[#8c8a9c] rounded-lg px-3 h-[38px]"
+            className="self-center bg-transparent border border-[#2c2c38] text-[#8c8a9c] rounded-lg px-3 h-[38px] rotate-90 sm:rotate-0 justify-self-center"
           >
             ⇄
           </button>
@@ -359,7 +359,7 @@ export default function CompareDecksPage() {
             </select>
           </div>
         </div>
-        <div className="flex items-center gap-3 mt-4">
+        <div className="flex flex-wrap items-center gap-3 mt-4">
           <button
             onClick={handleCompare}
             disabled={comparing}
@@ -396,7 +396,7 @@ export default function CompareDecksPage() {
               {diffResult.into.length} dentro
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <ResultColumn
               title="Salen"
               items={diffResult.out}
@@ -437,7 +437,7 @@ function ResultsSkeleton() {
         <div className="h-4 w-16 rounded bg-[#2c2c38] animate-pulse" />
         <div className="h-4 w-20 rounded bg-[#2c2c38] animate-pulse" />
       </div>
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
           <div className="h-4 w-12 rounded bg-[#2c2c38] animate-pulse mb-3" />
           <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-3">
