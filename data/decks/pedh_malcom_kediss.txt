@@ -1,0 +1,86 @@
+1 Amoeboid Changeling
+1 Amorphous Axe
+1 Blades of Velis Vel
+1 Blink of an Eye
+1 Blisterspit Gremlin
+1 Brainstorm
+1 Cloud Pirates
+1 Command Tower
+1 Counterspell
+1 Dispel
+1 Dizzy Spell
+1 Drift of Phantasms
+1 Fanatical Firebrand
+1 Fiery Cannonade
+1 Firebrand Archer
+1 Forgotten Cave
+1 Frantic Search
+1 Freed from the Real
+1 Gitaxian Probe
+1 Goblin Trailblazer
+1 Great Furnace
+1 Gush
+1 HYDRA Assault Robot
+1 Hermetic Study
+1 High Tide
+1 Horseshoe Crab
+1 Ideas Unbound
+1 Imagecrafter
+1 Impulsive Pilferer
+1 Ingenious Artillerist
+1 Into the Roil
+11 Island
+1 Izzet Boilerworks
+1 Kessig Flamebreather
+1 Kitesail Corsair
+1 Lonely Sandbar
+1 Lookout's Dispersal
+1 Lotus Petal
+1 Lórien Revealed
+1 Mana Leak
+1 Merchant Scroll
+1 Mind Stone
+1 Mizzium Skin
+1 Molten Tributary
+7 Mountain
+1 Muddle the Mixture
+1 Mystic Sanctuary
+1 Negate
+1 Oliphaunt
+1 Ophidian Eye
+1 Path of Ancestry
+1 Penregon Strongbull
+1 Ponder
+1 Portent
+1 Preordain
+1 Psionic Gift
+1 Quicksilver Dagger
+1 Reckless Fireweaver
+1 Runed Stalactite
+1 Seat of the Synod
+1 Serum Visions
+1 Shadow Rift
+1 Shenanigans
+1 Sigil of Sleep
+1 Silverbluff Bridge
+1 Simian Spirit Guide
+1 Snap
+1 Snapback
+1 Spell Pierce
+1 Sunshot Militia
+1 Talas Explorer
+1 Tandem Lookout
+1 Thermo-Alchemist
+1 Thought Vessel
+1 Thriving Isle
+1 Treasure Cruise
+1 Trickery Charm
+1 Trinket Mage
+1 Unruly Catapult
+1 Viridian Longbow
+1 Volatile Fjord
+1 Wings of Velis Vel
+
+// SIDEBOARD
+1 Kediss, Emberclaw Familiar
+1 Malcolm, Keen-Eyed Navigator
