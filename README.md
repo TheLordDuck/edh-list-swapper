@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EDH List Swapper
 
-## Getting Started
+A small Next.js tool for Commander (EDH) players who keep swapping cards between decks. Upload two decklists as `.txt` files, pick which one is your **current** build and which is the **target** you want to switch to, and get a side-by-side diff — cards to take out, cards to put in, with Scryfall art for each — instead of comparing two text files by eye.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Upload & store decklists** as plain `.txt` files (one line per card: `<qty> <card name>`)
+- **Pick current vs. target** deck and swap them with one click
+- **Diff view** showing exactly what comes **out** and what goes **in**, with quantities
+- **Card images** pulled from the [Scryfall API](https://scryfall.com/docs/api) for every card in the diff
+- Warns you if the two decklists don't add up to the same total card count
+- Delete saved decklists you no longer need
+
+## How it works
+
+Decklists are plain text, one card per line:
+
+```
+1 Sol Ring
+1 Arcane Signet
+10 Forest
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Lines are matched by normalized card name (accents/curly quotes/whitespace are ignored), so the diff is based on name + quantity, not exact text. Uploaded lists are stored as `.txt` files under `data/decks/` on the server.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- [Next.js](https://nextjs.org) (App Router) + React 19
+- TypeScript
+- Tailwind CSS 4
+- Filesystem-backed API routes (`app/api/decks`) for storing/reading/deleting decklists
+- [Scryfall](https://scryfall.com/docs/api) `cards/collection` endpoint for card images
 
-## Learn More
+## Getting started
 
-To learn more about Next.js, take a look at the following resources:
+Install dependencies and run the dev server (this project uses [pnpm](https://pnpm.io)):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm install
+pnpm dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:3000](http://localhost:3000) and upload a couple of `.txt` decklists to try it out.
 
-## Deploy on Vercel
+## Available scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Command      | Description                       |
+| ------------ | ---------------------------------- |
+| `pnpm dev`   | Start the development server       |
+| `pnpm build` | Build the app for production       |
+| `pnpm start` | Run the production build           |
+| `pnpm lint`  | Run ESLint                         |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project structure
+
+```
+app/
+  page.tsx              # Main UI: upload, deck picker, diff results
+  api/decks/            # REST-ish API for listing/uploading decklists
+  api/decks/[name]/     # Read/delete a single decklist
+data/decks/             # Uploaded .txt decklists (gitignored)
+```
+
+## Notes
+
+- Uploaded decklists are stored on disk (`data/decks/*.txt`), which are excluded from git — they won't persist across deployments unless the hosting platform provides persistent storage.
+- The app builds with `output: "standalone"` in `next.config.ts`, which suits container-based deployments (e.g. Railway/Nixpacks).
