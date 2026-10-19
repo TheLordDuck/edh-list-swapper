@@ -1,7 +1,15 @@
 // src/app/dashboard/compare-decks/page.tsx
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import AppHeader from "./components/AppHeader";
+import {
+  type CardEntry,
+  fetchDeckContent,
+  parseList,
+  totalCards,
+} from "./lib/deck-list";
 
 type DiffItem = { name: string; qty: number };
 type ScryfallCard = {
@@ -9,43 +17,6 @@ type ScryfallCard = {
   image_uris?: { normal?: string };
   card_faces?: { image_uris?: { normal?: string } }[];
 };
-
-function normalizeKey(name: string): string {
-  return name
-    .normalize("NFKC")
-    .replace(/[\u2018\u2019\u02BC]/g, "'") // comillas curvas -> recta
-    .replace(/[\u201C\u201D]/g, '"')
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-}
-
-type CardEntry = { name: string; qty: number };
-
-function parseList(text: string): Map<string, CardEntry> {
-  const map = new Map<string, CardEntry>();
-  text.split("\n").forEach((rawLine) => {
-    const line = rawLine.trim();
-    if (!line || line.startsWith("//")) return;
-    const match = line.match(/^(\d+)\s+(.+)$/);
-    if (!match) return;
-    const qty = parseInt(match[1], 10);
-    const name = match[2].trim();
-    const key = normalizeKey(name);
-    const existing = map.get(key);
-    map.set(key, {
-      name: existing?.name ?? name,
-      qty: (existing?.qty ?? 0) + qty,
-    });
-  });
-  return map;
-}
-
-function totalCards(map: Map<string, CardEntry>): number {
-  let total = 0;
-  map.forEach((entry) => (total += entry.qty));
-  return total;
-}
 
 function diffDecks(
   current: Map<string, CardEntry>,
@@ -116,11 +87,8 @@ async function fetchImages(
 }
 
 export default function CompareDecksPage() {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [deckNames, setDeckNames] = useState<string[]>([]);
   const [decksLoading, setDecksLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
 
   const [currentDeck, setCurrentDeck] = useState("");
   const [targetDeck, setTargetDeck] = useState("");
@@ -136,12 +104,6 @@ export default function CompareDecksPage() {
     target: number;
   } | null>(null);
 
-  async function refreshDecks() {
-    const res = await fetch("/api/decks");
-    const json = await res.json();
-    setDeckNames(json.decks || []);
-  }
-
   useEffect(() => {
     let ignore = false;
 
@@ -149,7 +111,18 @@ export default function CompareDecksPage() {
       try {
         const res = await fetch("/api/decks");
         const json = await res.json();
-        if (!ignore) setDeckNames(json.decks || []);
+        if (ignore) return;
+        const names: string[] = json.decks || [];
+        setDeckNames(names);
+
+        // Preselección desde /mazos (?actual=... / ?objetivo=...)
+        const params = new URLSearchParams(window.location.search);
+        const actual = params.get("actual");
+        const objetivo = params.get("objetivo");
+        if (actual && names.includes(actual)) setCurrentDeck(actual);
+        if (objetivo && names.includes(objetivo) && objetivo !== actual) {
+          setTargetDeck(objetivo);
+        }
       } finally {
         if (!ignore) setDecksLoading(false);
       }
@@ -162,47 +135,9 @@ export default function CompareDecksPage() {
     };
   }, []);
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    setStatus(`Subiendo ${file.name}...`);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch("/api/decks", { method: "POST", body: formData });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Error al subir el mazo");
-      setStatus(`Mazo "${json.name}" guardado.`);
-      await refreshDecks();
-    } catch (err) {
-      setStatus(err instanceof Error ? err.message : "Error al subir el mazo");
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  }
-
-  async function handleDeleteDeck(name: string) {
-    await fetch(`/api/decks/${encodeURIComponent(name)}`, { method: "DELETE" });
-    if (currentDeck === name) setCurrentDeck("");
-    if (targetDeck === name) setTargetDeck("");
-    await refreshDecks();
-  }
-
   function handleSwap() {
     setCurrentDeck(targetDeck);
     setTargetDeck(currentDeck);
-  }
-
-  async function fetchDeckContent(name: string): Promise<string> {
-    const res = await fetch(`/api/decks/${encodeURIComponent(name)}`);
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || "No se pudo leer el mazo");
-    return json.content as string;
   }
 
   async function handleCompare() {
@@ -244,106 +179,17 @@ export default function CompareDecksPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-[1320px] mx-auto px-4 sm:px-6 pt-8 pb-20 flex flex-col gap-8">
-        {/* Cabecera + subida */}
-        <header className="flex flex-wrap items-end justify-between gap-4 pb-6 border-b border-line">
-          <div className="flex items-center gap-3.5">
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-              <rect x="5" y="8" width="18" height="25" rx="3" stroke="#D9B25F" strokeWidth="2" transform="rotate(-10 14 20)" />
-              <rect x="17" y="7" width="18" height="25" rx="3" stroke="#EDEAE2" strokeWidth="2" transform="rotate(8 26 20)" />
-            </svg>
-            <div>
-              <h1 className="font-display font-bold text-[28px] sm:text-[32px] leading-tight tracking-tight">
-                EDH List Swapper
-              </h1>
-              <p className="mt-1 text-sm text-muted">
-                Qué sacar y qué meter para pasar de un mazo a otro.
-              </p>
-            </div>
-          </div>
-          <label
-            className={`relative inline-flex items-center gap-2.5 min-h-11 px-[18px] border border-dashed border-[#4a4b55] rounded-[10px] text-sm font-semibold focus-within:outline-2 focus-within:outline-gold focus-within:outline-offset-2 ${uploading ? "opacity-50 cursor-wait" : "cursor-pointer hover:border-gold"}`}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M12 16V4" />
-              <path d="m6 10 6-6 6 6" />
-              <path d="M4 20h16" />
-            </svg>
-            {uploading ? "Subiendo..." : "Subir decklist (.txt)"}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".txt"
-              onChange={handleFileChange}
-              disabled={uploading}
-              className="absolute w-px h-px opacity-0 overflow-hidden"
-            />
-          </label>
-        </header>
+        <AppHeader subtitle="Qué sacar y qué meter para pasar de un mazo a otro." />
 
-        {/* Mazos guardados */}
-        <section aria-labelledby="lib-title" className="flex flex-col gap-3.5">
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 id="lib-title" className="text-xs font-bold uppercase tracking-[0.12em] text-muted">
-              Mazos guardados
-            </h2>
-            {!decksLoading && (
-              <span className="font-mono text-xs text-muted">
-                {deckNames.length} listas
-              </span>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {decksLoading ? (
-              <>
-                <div className="h-10 w-40 rounded-full bg-line animate-pulse" />
-                <div className="h-10 w-28 rounded-full bg-line animate-pulse" />
-                <div className="h-10 w-44 rounded-full bg-line animate-pulse" />
-              </>
-            ) : deckNames.length === 0 ? (
-              <span className="text-sm text-muted">
-                Todavía no has subido ningún mazo.
-              </span>
-            ) : (
-              deckNames.map((name) => {
-                const tag =
-                  name === currentDeck
-                    ? "ACTUAL"
-                    : name === targetDeck
-                      ? "OBJETIVO"
-                      : "";
-                const border =
-                  tag === "OBJETIVO"
-                    ? "border-gold"
-                    : tag === "ACTUAL"
-                      ? "border-[#5a5b66]"
-                      : "border-line";
-                return (
-                  <div
-                    key={name}
-                    className={`inline-flex items-center gap-1 pl-3.5 pr-1 min-h-10 bg-surface border ${border} rounded-full text-sm`}
-                  >
-                    <span>{name}</span>
-                    {tag && (
-                      <span className="font-mono text-[11px] text-muted ml-1">
-                        {tag}
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteDeck(name)}
-                      aria-label={`Borrar ${name}`}
-                      className="w-8 h-8 inline-flex items-center justify-center rounded-full text-muted hover:text-out hover:bg-line"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
-                        <path d="M6 6l12 12M18 6 6 18" />
-                      </svg>
-                    </button>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </section>
+        {!decksLoading && deckNames.length < 2 && (
+          <p className="rounded-xl border border-dashed border-line-strong px-5 py-6 text-center text-sm text-muted">
+            Necesitas al menos dos listas para comparar.{" "}
+            <Link href="/mazos" className="font-semibold text-gold hover:text-gold-light">
+              Sube tus decklists en Mis listas
+            </Link>
+            .
+          </p>
+        )}
 
         {/* Selector de comparación */}
         <section
