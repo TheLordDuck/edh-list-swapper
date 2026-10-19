@@ -242,178 +242,267 @@ export default function CompareDecksPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f14] text-[#f0eef7] p-4 sm:p-6">
-      {/* Subida de mazos */}
-      <div className="bg-[#1a1a22] border border-[#2c2c38] rounded-lg p-4 mb-5">
-        <h2 className="text-xs font-bold uppercase tracking-wide text-[#8c8a9c] mb-3">
-          Mazos guardados
-        </h2>
-
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".txt"
-            onChange={handleFileChange}
-            disabled={uploading}
-            className="text-sm max-w-full file:mr-3 file:rounded-lg file:border-0 file:bg-[#8a6fe8] file:text-white file:px-4 file:py-2 file:text-sm file:font-semibold file:cursor-pointer hover:file:brightness-110 disabled:opacity-50"
-          />
-          {uploading && (
-            <span className="text-sm text-[#8c8a9c]">Subiendo...</span>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {decksLoading ? (
-            <>
-              <div className="h-6 w-28 rounded-full bg-[#2c2c38] animate-pulse" />
-              <div className="h-6 w-20 rounded-full bg-[#2c2c38] animate-pulse" />
-              <div className="h-6 w-32 rounded-full bg-[#2c2c38] animate-pulse" />
-            </>
-          ) : deckNames.length === 0 ? (
-            <span className="text-xs text-[#8c8a9c]">
-              Todavía no has subido ningún mazo.
-            </span>
-          ) : (
-            deckNames.map((name) => (
-              <div
-                key={name}
-                className="flex items-center gap-2 bg-[#0f0f14] border border-[#2c2c38] rounded-full pl-3 pr-2 py-1 text-xs"
-              >
-                <span>{name}</span>
-                <button
-                  onClick={() => handleDeleteDeck(name)}
-                  className="text-[#8c8a9c] hover:text-[#ff4d6d] px-1"
-                >
-                  ✕
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* Selector de comparación */}
-      <div className="bg-[#1a1a22] border border-[#2c2c38] rounded-lg p-4 mb-5">
-        <h2 className="text-xs font-bold uppercase tracking-wide text-[#8c8a9c] mb-3">
-          Comparar
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-3 sm:items-end">
-          <div>
-            <label
-              htmlFor="currentDeckSelect"
-              className="block text-xs font-semibold uppercase tracking-wide text-[#8c8a9c] mb-1.5"
-            >
-              Mazo actual (configurado)
-            </label>
-            <select
-              id="currentDeckSelect"
-              aria-label="Mazo actual"
-              value={currentDeck}
-              onChange={(e) => setCurrentDeck(e.target.value)}
-              disabled={decksLoading}
-              suppressHydrationWarning
-              className="w-full bg-[#0f0f14] border border-[#2c2c38] rounded-lg px-3 py-2 text-sm disabled:opacity-50"
-            >
-              <option value="">— elegir —</option>
-              {deckNames
-                .filter((name) => name !== targetDeck)
-                .map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-            </select>
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="max-w-[1320px] mx-auto px-4 sm:px-6 pt-8 pb-20 flex flex-col gap-8">
+        {/* Cabecera + subida */}
+        <header className="flex flex-wrap items-end justify-between gap-4 pb-6 border-b border-line">
+          <div className="flex items-center gap-3.5">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+              <rect x="5" y="8" width="18" height="25" rx="3" stroke="#D9B25F" strokeWidth="2" transform="rotate(-10 14 20)" />
+              <rect x="17" y="7" width="18" height="25" rx="3" stroke="#EDEAE2" strokeWidth="2" transform="rotate(8 26 20)" />
+            </svg>
+            <div>
+              <h1 className="font-display font-bold text-[28px] sm:text-[32px] leading-tight tracking-tight">
+                EDH List Swapper
+              </h1>
+              <p className="mt-1 text-sm text-muted">
+                Qué sacar y qué meter para pasar de un mazo a otro.
+              </p>
+            </div>
           </div>
-          <button
-            onClick={handleSwap}
-            title="Intercambiar"
-            className="self-center bg-transparent border border-[#2c2c38] text-[#8c8a9c] rounded-lg px-3 h-[38px] rotate-90 sm:rotate-0 justify-self-center"
+          <label
+            className={`relative inline-flex items-center gap-2.5 min-h-11 px-[18px] border border-dashed border-[#4a4b55] rounded-[10px] text-sm font-semibold focus-within:outline-2 focus-within:outline-gold focus-within:outline-offset-2 ${uploading ? "opacity-50 cursor-wait" : "cursor-pointer hover:border-gold"}`}
           >
-            ⇄
-          </button>
-          <div>
-            <label
-              htmlFor="targetDeckSelect"
-              className="block text-xs font-semibold uppercase tracking-wide text-[#8c8a9c] mb-1.5"
-            >
-              Mazo objetivo (al que quiero pasarme)
-            </label>
-            <select
-              id="targetDeckSelect"
-              aria-label="Mazo objetivo"
-              value={targetDeck}
-              onChange={(e) => setTargetDeck(e.target.value)}
-              disabled={decksLoading}
-              suppressHydrationWarning
-              className="w-full bg-[#0f0f14] border border-[#2c2c38] rounded-lg px-3 py-2 text-sm disabled:opacity-50"
-            >
-              <option value="">— elegir —</option>
-              {deckNames
-                .filter((name) => name !== currentDeck)
-                .map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-            </select>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 16V4" />
+              <path d="m6 10 6-6 6 6" />
+              <path d="M4 20h16" />
+            </svg>
+            {uploading ? "Subiendo..." : "Subir decklist (.txt)"}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".txt"
+              onChange={handleFileChange}
+              disabled={uploading}
+              className="absolute w-px h-px opacity-0 overflow-hidden"
+            />
+          </label>
+        </header>
+
+        {/* Mazos guardados */}
+        <section aria-labelledby="lib-title" className="flex flex-col gap-3.5">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 id="lib-title" className="text-xs font-bold uppercase tracking-[0.12em] text-muted">
+              Mazos guardados
+            </h2>
+            {!decksLoading && (
+              <span className="font-mono text-xs text-muted">
+                {deckNames.length} listas
+              </span>
+            )}
           </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 mt-4">
-          <button
-            onClick={handleCompare}
-            disabled={comparing}
-            className="bg-[#8a6fe8] hover:brightness-110 disabled:opacity-50 text-white rounded-lg px-5 py-2 text-sm font-semibold"
-          >
+          <div className="flex flex-wrap gap-2">
+            {decksLoading ? (
+              <>
+                <div className="h-10 w-40 rounded-full bg-line animate-pulse" />
+                <div className="h-10 w-28 rounded-full bg-line animate-pulse" />
+                <div className="h-10 w-44 rounded-full bg-line animate-pulse" />
+              </>
+            ) : deckNames.length === 0 ? (
+              <span className="text-sm text-muted">
+                Todavía no has subido ningún mazo.
+              </span>
+            ) : (
+              deckNames.map((name) => {
+                const tag =
+                  name === currentDeck
+                    ? "ACTUAL"
+                    : name === targetDeck
+                      ? "OBJETIVO"
+                      : "";
+                const border =
+                  tag === "OBJETIVO"
+                    ? "border-gold"
+                    : tag === "ACTUAL"
+                      ? "border-[#5a5b66]"
+                      : "border-line";
+                return (
+                  <div
+                    key={name}
+                    className={`inline-flex items-center gap-1 pl-3.5 pr-1 min-h-10 bg-surface border ${border} rounded-full text-sm`}
+                  >
+                    <span>{name}</span>
+                    {tag && (
+                      <span className="font-mono text-[11px] text-muted ml-1">
+                        {tag}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteDeck(name)}
+                      aria-label={`Borrar ${name}`}
+                      className="w-8 h-8 inline-flex items-center justify-center rounded-full text-muted hover:text-out hover:bg-line"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                        <path d="M6 6l12 12M18 6 6 18" />
+                      </svg>
+                    </button>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </section>
+
+        {/* Selector de comparación */}
+        <section
+          aria-labelledby="cmp-title"
+          className="bg-surface border border-line rounded-2xl p-4 sm:p-6 flex flex-col gap-5"
+        >
+          <h2 id="cmp-title" className="text-xs font-bold uppercase tracking-[0.12em] text-muted">
             Comparar
-          </button>
-          <span className="text-sm text-[#8c8a9c]">{status}</span>
-        </div>
-      </div>
+          </h2>
+          <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+            <DeckSelect
+              id="currentDeckSelect"
+              label="Mazo actual · el que tienes montado"
+              value={currentDeck}
+              onChange={setCurrentDeck}
+              options={deckNames.filter((name) => name !== targetDeck)}
+              disabled={decksLoading}
+              highlight={false}
+            />
+            <button
+              type="button"
+              onClick={handleSwap}
+              aria-label="Intercambiar actual y objetivo"
+              title="Intercambiar"
+              className="self-center sm:self-auto w-14 h-14 sm:h-[72px] shrink-0 inline-flex items-center justify-center border border-line-strong rounded-xl text-gold hover:border-gold rotate-90 sm:rotate-0"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M7 4 3 8l4 4" />
+                <path d="M3 8h14" />
+                <path d="m17 20 4-4-4-4" />
+                <path d="M21 16H7" />
+              </svg>
+            </button>
+            <DeckSelect
+              id="targetDeckSelect"
+              label="Mazo objetivo · al que te quieres pasar"
+              value={targetDeck}
+              onChange={setTargetDeck}
+              options={deckNames.filter((name) => name !== currentDeck)}
+              disabled={decksLoading}
+              highlight
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-4">
+            <button
+              type="button"
+              onClick={handleCompare}
+              disabled={comparing}
+              className="min-h-12 px-7 bg-gold hover:bg-gold-light disabled:opacity-50 text-[#16130c] rounded-xl text-[15px] font-bold"
+            >
+              Comparar mazos
+            </button>
+            <span className="text-sm text-muted" role="status">
+              {status}
+            </span>
+          </div>
+        </section>
 
-      {/* Resultados */}
-      {comparing && <ResultsSkeleton />}
+        {/* Resultados */}
+        {comparing && <ResultsSkeleton />}
 
-      {!comparing && diffResult && (
-        <>
-          {totals && (
-            <div className="flex items-center gap-4 text-xs text-[#8c8a9c] mb-2">
-              <span>Actual: {totals.current} cartas</span>
-              <span>Objetivo: {totals.target} cartas</span>
-              {totals.current !== totals.target && (
-                <span className="text-[#ffb454] font-semibold">
-                  ⚠ Los mazos no tienen el mismo total de cartas — el número de
-                  fuera y dentro no va a cuadrar.
+        {!comparing && diffResult && (
+          <section aria-label="Resultado" className="flex flex-col gap-5">
+            <div className="flex flex-wrap items-center gap-x-7 gap-y-3">
+              <div className="flex items-baseline gap-2">
+                <span className="font-display font-bold text-[44px] leading-none text-out">
+                  {sumQty(diffResult.out)}
                 </span>
+                <span className="font-semibold">salen</span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-display font-bold text-[44px] leading-none text-in">
+                  {sumQty(diffResult.into)}
+                </span>
+                <span className="font-semibold">entran</span>
+              </div>
+              {totals && totals.current !== totals.target && (
+                <div className="inline-flex items-center gap-2.5 px-3.5 py-2.5 bg-[#2a2213] border border-[#6b5527] rounded-[10px] text-gold-light text-[13px]">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0">
+                    <path d="M12 3 2 21h20L12 3z" />
+                    <path d="M12 10v5" />
+                    <path d="M12 18h.01" />
+                  </svg>
+                  Los totales no cuadran ({totals.current} vs {totals.target}):
+                  salen y entran no van a ser iguales.
+                </div>
               )}
             </div>
-          )}
-          <div className="flex gap-6 text-sm mb-4">
-            <div className="text-[#ff4d6d] font-semibold">
-              {diffResult.out.length} fuera
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ResultColumn
+                title="Salen"
+                subtitle={`de ${currentDeck}`}
+                items={diffResult.out}
+                sign="−"
+                color="out"
+                images={images}
+              />
+              <ResultColumn
+                title="Entran"
+                subtitle={`de ${targetDeck}`}
+                items={diffResult.into}
+                sign="+"
+                color="in"
+                images={images}
+              />
             </div>
-            <div className="text-[#2ee07a] font-semibold">
-              {diffResult.into.length} dentro
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <ResultColumn
-              title="Salen"
-              items={diffResult.out}
-              sign="-"
-              color="red"
-              images={images}
-            />
-            <ResultColumn
-              title="Entran"
-              items={diffResult.into}
-              sign="+"
-              color="green"
-              images={images}
-            />
-          </div>
-        </>
-      )}
+          </section>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function sumQty(items: DiffItem[]): number {
+  return items.reduce((n, item) => n + item.qty, 0);
+}
+
+function DeckSelect({
+  id,
+  label,
+  value,
+  onChange,
+  options,
+  disabled,
+  highlight,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: string[];
+  disabled: boolean;
+  highlight: boolean;
+}) {
+  return (
+    <div className="flex-1 min-w-0 flex flex-col gap-2">
+      <label htmlFor={id} className="text-[13px] font-semibold text-muted">
+        {label}
+      </label>
+      <div className="relative">
+        <select
+          id={id}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+          suppressHydrationWarning
+          className={`appearance-none w-full min-h-[72px] pl-[18px] pr-12 bg-background border rounded-xl font-display text-[22px] font-medium text-foreground disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-gold focus-visible:outline-offset-2 ${highlight ? "border-gold" : "border-line-strong"}`}
+        >
+          <option value="">— elegir —</option>
+          {options.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A3A3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="pointer-events-none absolute right-[18px] top-1/2 -translate-y-1/2">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </div>
     </div>
   );
 }
@@ -422,84 +511,84 @@ function ResultsSkeleton() {
   const skeletonCard = (i: number) => (
     <div
       key={i}
-      className="rounded-lg overflow-hidden border-2 border-[#2c2c38] bg-[#1a1a22] animate-pulse"
+      className="rounded-[10px] overflow-hidden border border-line bg-surface animate-pulse"
     >
-      <div className="w-full aspect-[5/7] bg-[#23232e]" />
-      <div className="px-2 py-2">
-        <div className="h-2.5 bg-[#2c2c38] rounded w-4/5" />
+      <div className="w-full aspect-[5/7] bg-[#22232a]" />
+      <div className="px-2.5 py-2.5">
+        <div className="h-2.5 bg-line rounded w-4/5" />
       </div>
     </div>
   );
 
   return (
-    <>
-      <div className="flex gap-6 mb-4">
-        <div className="h-4 w-16 rounded bg-[#2c2c38] animate-pulse" />
-        <div className="h-4 w-20 rounded bg-[#2c2c38] animate-pulse" />
+    <div className="flex flex-col gap-5">
+      <div className="flex gap-7">
+        <div className="h-11 w-24 rounded bg-line animate-pulse" />
+        <div className="h-11 w-28 rounded bg-line animate-pulse" />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div>
-          <div className="h-4 w-12 rounded bg-[#2c2c38] animate-pulse mb-3" />
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-3">
-            {Array.from({ length: 6 }).map((_, i) => skeletonCard(i))}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {[0, 1].map((col) => (
+          <div key={col} className="flex flex-col gap-3.5">
+            <div className="h-9 rounded bg-line animate-pulse" />
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3.5">
+              {Array.from({ length: 6 }).map((_, i) => skeletonCard(i))}
+            </div>
           </div>
-        </div>
-        <div>
-          <div className="h-4 w-14 rounded bg-[#2c2c38] animate-pulse mb-3" />
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-3">
-            {Array.from({ length: 6 }).map((_, i) => skeletonCard(i))}
-          </div>
-        </div>
+        ))}
       </div>
-    </>
+    </div>
   );
 }
 
 function ResultColumn({
   title,
+  subtitle,
   items,
   sign,
   color,
   images,
 }: {
   title: string;
+  subtitle: string;
   items: DiffItem[];
   sign: string;
-  color: "red" | "green";
+  color: "out" | "in";
   images: Record<string, string | null>;
 }) {
-  const isRed = color === "red";
-  const titleColor = isRed ? "text-[#ff4d6d]" : "text-[#2ee07a]";
-  const cardBorder = isRed ? "border-[#ff4d6d]" : "border-[#2ee07a]";
-  const cardBg = isRed ? "bg-[#ff4d6d26]" : "bg-[#2ee07a26]";
-  const qtyBg = isRed ? "bg-[#ff4d6d]" : "bg-[#2ee07a]";
-  const glow = isRed
-    ? "shadow-[0_0_0_1px_rgba(255,77,109,0.25)]"
-    : "shadow-[0_0_0_1px_rgba(46,224,122,0.25)]";
+  const isOut = color === "out";
+  const accent = isOut ? "text-out" : "text-in";
+  const rule = isOut ? "border-out" : "border-in";
+  const qtyBg = isOut ? "bg-out text-[#1a0e06]" : "bg-in text-[#06121d]";
 
   return (
-    <div>
-      <h2 className={`text-sm font-bold mb-3 ${titleColor}`}>{title}</h2>
+    <div className="min-w-0 flex flex-col gap-3.5">
+      <div className={`flex items-center gap-2.5 pb-2.5 border-b-2 ${rule}`}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true" className={accent}>
+          <path d={isOut ? "M5 12h14" : "M5 12h14M12 5v14"} />
+        </svg>
+        <h3 className="text-lg font-bold">{title}</h3>
+        <span className="text-[13px] text-muted truncate">{subtitle}</span>
+      </div>
       {items.length === 0 ? (
-        <div className="text-sm text-[#8c8a9c] py-5">
-          {isRed ? "Nada que quitar." : "Nada que añadir."}
+        <div className="text-sm text-muted py-5">
+          {isOut ? "Nada que quitar." : "Nada que añadir."}
         </div>
       ) : (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-3">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3.5">
           {items.map((item) => {
             const img = images[item.name];
             return (
-              <div
+              <article
                 key={item.name}
-                className={`relative rounded-lg overflow-hidden border-2 ${cardBorder} ${cardBg} ${glow}`}
+                className="relative rounded-[10px] overflow-hidden bg-surface border border-line-strong"
               >
                 <span
-                  className={`absolute top-1.5 right-1.5 text-xs font-extrabold text-black px-1.5 py-0.5 rounded ${qtyBg}`}
+                  className={`absolute top-2 right-2 z-10 px-[7px] py-0.5 rounded-md font-mono text-xs font-bold ${qtyBg}`}
                 >
                   {sign}
                   {item.qty}
                 </span>
-                {img && (
+                {img ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={img}
@@ -507,13 +596,15 @@ function ResultColumn({
                     loading="lazy"
                     className="w-full aspect-[5/7] object-cover bg-black"
                   />
+                ) : (
+                  <div className="w-full aspect-[5/7] bg-[#22232a] flex items-center justify-center p-3 text-center font-display text-[15px]">
+                    {item.name}
+                  </div>
                 )}
-                <div
-                  className={`px-2 py-1.5 text-[11px] leading-tight font-medium ${img ? "" : "pt-3.5"}`}
-                >
+                <div className="px-2.5 py-2 text-xs leading-tight font-medium">
                   {item.name}
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>
