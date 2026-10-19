@@ -1,7 +1,13 @@
 export type CardEntry = { name: string; qty: number };
 
+// Cartas partidas / de dos caras ("Wear/Tear", "Wear // Tear",
+// "Valakut Awakening // Valakut Stoneforge") se identifican por su primera cara.
+export function frontFace(name: string): string {
+  return name.split("/")[0].trim();
+}
+
 export function normalizeKey(name: string): string {
-  return name
+  return frontFace(name)
     .normalize("NFKC")
     .replace(/[‘’ʼ]/g, "'") // comillas curvas -> recta
     .replace(/[“”]/g, '"')

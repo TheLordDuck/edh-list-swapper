@@ -7,6 +7,8 @@ import AppHeader from "./components/AppHeader";
 import {
   type CardEntry,
   fetchDeckContent,
+  frontFace,
+  normalizeKey,
   parseList,
   totalCards,
 } from "./lib/deck-list";
@@ -56,9 +58,12 @@ function getCardImage(card: ScryfallCard): string | null {
 async function fetchImages(
   names: string[],
 ): Promise<Record<string, string | null>> {
-  const cache: Record<string, string | null> = {};
-  for (let i = 0; i < names.length; i += 75) {
-    const chunk = names.slice(i, i + 75);
+  // Scryfall solo resuelve cartas partidas / de dos caras por su primera cara
+  // ("Wear", no "Wear/Tear" ni "Wear // Tear"), y responde con el nombre completo.
+  const byKey: Record<string, string | null> = {};
+  const queries = [...new Set(names.map(frontFace))];
+  for (let i = 0; i < queries.length; i += 75) {
+    const chunk = queries.slice(i, i + 75);
     try {
       const res = await fetch("https://api.scryfall.com/cards/collection", {
         method: "POST",
@@ -67,23 +72,17 @@ async function fetchImages(
       });
       const json = await res.json();
       (json.data || []).forEach((card: ScryfallCard) => {
-        cache[card.name] = getCardImage(card);
+        byKey[normalizeKey(card.name)] = getCardImage(card);
       });
     } catch {
-      chunk.forEach((n) => {
-        cache[n] = null;
-      });
+      // sin imagen para este bloque
     }
   }
+  const images: Record<string, string | null> = {};
   names.forEach((n) => {
-    if (!(n in cache)) {
-      const found = Object.keys(cache).find(
-        (k) => k.toLowerCase() === n.toLowerCase(),
-      );
-      cache[n] = found ? cache[found] : null;
-    }
+    images[n] = byKey[normalizeKey(n)] ?? null;
   });
-  return cache;
+  return images;
 }
 
 export default function CompareDecksPage() {
@@ -435,21 +434,24 @@ function ResultColumn({
                   {item.qty}
                 </span>
                 {img ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={img}
-                    alt={item.name}
-                    loading="lazy"
-                    className="w-full aspect-[5/7] object-cover bg-black"
-                  />
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={img}
+                      alt={item.name}
+                      loading="lazy"
+                      className="w-full aspect-[5/7] object-cover bg-black"
+                    />
+                    <div className="px-2.5 py-2 text-xs leading-tight font-medium">
+                      {item.name}
+                    </div>
+                  </>
                 ) : (
-                  <div className="w-full aspect-[5/7] bg-[#22232a] flex items-center justify-center p-3 text-center font-display text-[15px]">
-                    {item.name}
+                  <div className="w-full aspect-[5/7] bg-[#22232a] flex flex-col items-center justify-center gap-2 p-3 text-center">
+                    <span className="font-display text-[15px]">{item.name}</span>
+                    <span className="text-[11px] text-muted">Sin imagen en Scryfall</span>
                   </div>
                 )}
-                <div className="px-2.5 py-2 text-xs leading-tight font-medium">
-                  {item.name}
-                </div>
               </article>
             );
           })}
